@@ -2,8 +2,8 @@
 
 #include "raylib.h"
 #include "ball.h"
-#include <string>
 #include <iostream>
+#include <cmath>
 
 //------------------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -17,11 +17,11 @@ typedef enum GameScreen
 } GameScreen;
 bool checkCollision(int screenH, int screenW, int y, int x)
 {
-    if (y < y + screenH / 20 && y > y - screenH / 20 && screenW - 20 < x && x < screenW - 10)
+    if (y < y + screenH / 20 && y > y - screenH / 20 && screenW - 20 < x && x < screenW - 10) //pc
     {
         return true;
     }
-    if (y < GetMouseY() + screenH / 20 && y > GetMouseY() - screenH / 20 && 10 < x && x < 20)
+    if (y < GetMouseY() + screenH / 20 && y > GetMouseY() - screenH / 20 && 10 < x && x < 20) //mouse
     {
         return true;
     }
@@ -35,19 +35,22 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenWidth = 640;
+    const int screenHeight = 480;
     int x = screenWidth / 2;
     int y = screenHeight / 2;
-    int cy = 3;
-    int cx = 3;
+    int cy = 1 + 2 * sqrt(sqrt(sqrt(screenHeight)));
+    int cx = 1 + 2 * sqrt(sqrt(sqrt(screenWidth)));
     int bounce = 1;
     int userScore = 0;
     int pcScore = 0;
     bool wait = false;
     int time = 0;
+    int posNegX = 1;
+    int posNegY = 1;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic screen manager");
+
+    InitWindow(screenWidth, screenHeight, "BAD PONG");
 
     GameScreen currentScreen = LOGO;
 
@@ -141,12 +144,12 @@ int main(void)
         break;
         case GAMEPLAY:
         {
-            std::cout<<wait<<std::endl;
             if (!wait)
             {
                 if (checkCollision(screenHeight, screenWidth, y, x))
                 {
                     wait = true;
+                    posNegX = -posNegX;
                     cx = -cx;
                     bounce++;
                 }
@@ -163,11 +166,11 @@ int main(void)
 
             if (y > screenHeight || y < 0)
             {
+                posNegY = -posNegY;
                 cy = -cy;
-                bounce++;
             }
-            x -= cx * bounce / (1 + bounce / 2);
-            y += cy * bounce / (1 + bounce / 2);
+            x += cx + (.2 * pow(bounce, 1.5) * posNegX);
+            y += cy + (.2 * pow(bounce, 1.5) * posNegY);
             if (x > screenWidth)
             {
                 x = screenWidth / 2;
@@ -190,6 +193,7 @@ int main(void)
             DrawRectangle(10, GetMouseY() - screenHeight / 20, 10, screenHeight / 10, BLUE);
             DrawRectangle(screenWidth - 20, y - screenHeight / 20, 10, screenHeight / 10, RED);
             DrawText(TextFormat("User score: %i Pc Score: %i", userScore, pcScore), screenWidth / 3, 20, 20, DARKBLUE);
+            DrawText(TextFormat("Bounce Counter: %i", bounce - 1), screenWidth / 3, 50, 10, BLACK);
 
             DrawCircle(x, y, 3, WHITE);
         }
